@@ -21,7 +21,7 @@ const NotesClient = () => {
     const [searchQuery, setSearchQuery] = useState("");
 
 
-    const { data, isSuccess, isLoading, isError } = useQuery({
+    const { data, isSuccess } = useQuery({
         queryKey: ['notes', currentPage, searchQuery],
         queryFn: () => fetchNotes(currentPage, searchQuery),
         placeholderData: keepPreviousData,
