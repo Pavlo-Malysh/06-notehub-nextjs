@@ -11,10 +11,16 @@ import { useDebouncedCallback } from 'use-debounce';
 import css from './page.module.css';
 import NoteList from '@/components/NoteList/NoteList';
 import { Toaster, toast } from 'react-hot-toast';
+import { Note } from '@/types/note';
 
+type Props = {
+    initialData: {
+        notes: Note[],
+        totalPages: number
+    };
+}
 
-
-const NotesClient = () => {
+const NotesClient = ({ initialData }: Props) => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,6 +32,7 @@ const NotesClient = () => {
         queryFn: () => fetchNotes(currentPage, searchQuery),
         placeholderData: keepPreviousData,
         refetchOnMount: false,
+        initialData,
 
     })
     const totalPages = data?.totalPages ?? 0;
@@ -56,7 +63,7 @@ const NotesClient = () => {
         <>
             <div className={css.app}>
                 <header className={css.toolbar}>
-                    <SearchBox value={searchQuery} onSearch={updateSearchQuery} />
+                    <SearchBox searchValue={searchQuery} onSearch={updateSearchQuery} />
                     {isSuccess && totalPages > 1 && <Pagination page={currentPage} onChange={setCurrentPage} total_page={totalPages} />}
                     <button className={css.button} onClick={openModal}>Create note +</button>
                     {isModalOpen && <Modal onClose={closeModal}>
