@@ -6,7 +6,7 @@ import SearchBox from '@/components/SearchBox/SearchBox';
 import { fetchNotes } from '@/lib/api';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebounce } from 'use-debounce';
 
 import css from './page.module.css';
 import NoteList from '@/components/NoteList/NoteList';
@@ -25,11 +25,11 @@ const NotesClient = ({ initialData }: Props) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-
+    const [debouncedSearch] = useDebounce(searchQuery, 500)
 
     const { data, isSuccess } = useQuery({
-        queryKey: ['notes', currentPage, searchQuery],
-        queryFn: () => fetchNotes(currentPage, searchQuery),
+        queryKey: ['notes', currentPage, debouncedSearch],
+        queryFn: () => fetchNotes(currentPage, debouncedSearch),
         placeholderData: keepPreviousData,
         refetchOnMount: false,
         initialData,
@@ -45,25 +45,21 @@ const NotesClient = ({ initialData }: Props) => {
     };
 
 
-    const updateSearchQuery = useDebouncedCallback((newSearchQuery: string) => {
-        setSearchQuery(newSearchQuery);
-        setCurrentPage(1);
-    }, 300);
-
-
     useEffect(() => {
         if (isSuccess && (data.notes.length === 0)) {
             toast.error("No notes found for your request.");
         }
     }, [isSuccess, data])
 
-
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch])
 
     return (
         <>
             <div className={css.app}>
                 <header className={css.toolbar}>
-                    <SearchBox searchValue={searchQuery} onSearch={updateSearchQuery} />
+                    <SearchBox searchValue={searchQuery} onSearch={setSearchQuery} />
                     {isSuccess && totalPages > 1 && <Pagination page={currentPage} onChange={setCurrentPage} total_page={totalPages} />}
                     <button className={css.button} onClick={openModal}>Create note +</button>
                     {isModalOpen && <Modal onClose={closeModal}>
